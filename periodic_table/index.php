@@ -1,5 +1,26 @@
 <?php
-$elements = require __DIR__ . '/data.php';
+
+$host   = 'localhost';
+$user   = 'root';
+$pass   = '';                 
+$dbname = 'periodic_table';
+
+$conn = new mysqli($host, $user, $pass, $dbname);
+if ($conn->connect_error) {
+    die('Database connection failed: ' .connect_error);
+}
+
+$elements = [];
+$result = $conn->query(
+    "SELECT number, symbol, name, mass, category, grp, period FROM elements ORDER BY number"
+);
+if ($result) {
+    while ($row = $result->fetch_row()) {
+        $row[3] = (float) $row[3];   
+        $elements[] = $row;
+    }
+}
+$conn->close();
 
 $categoryLabels = [
     'alkali-metal'     => 'Alkali metal',
@@ -14,11 +35,12 @@ $categoryLabels = [
     'unknown'          => 'Unknown properties',
 ];
 
-// element tile + grid position.
 function renderCell($e, $col, $row) {
-    [$num, $sym, $name, $mass, $cat] = $e;
+    [$num, $sym, $name, $mass, $cat,$period,$grp] = $e;
     $title = htmlspecialchars("$num - $name ($mass)");
-    echo "<div class='element {$cat}' style='grid-column:{$col};grid-row:{$row};' title='{$title}'>"
+    $safename = htmlspecialchars($name, ENT_QUOTES);
+    echo "<div class='element {$cat}' style='grid-column:{$col};grid-row:{$row};' title='{$title}'
+            onclick='openModal(this)' data-num='{$num}' data-mass='{$mass}' data-name='{$safename}' data-period='{$period}' >"
        . "<span class='num'>{$num}</span>"
        . "<span class='sym'>{$sym}</span>"
        . "<span class='mass'>{$mass}</span>"
@@ -66,7 +88,7 @@ function renderCell($e, $col, $row) {
         font-size:.7rem; font-weight:600; background:#334155; color:#e2e8f0;
     }
 
-    
+   
     .alkali-metal     { background:#ff6b6b; }
     .alkaline-earth   { background:#ffa94d; }
     .transition-metal { background:#ffd43b; }
@@ -94,9 +116,11 @@ function renderCell($e, $col, $row) {
                 renderCell($e, $e[5], $e[6]); 
             }
 
+            
             echo "<div class='series-ref' style='grid-column:3;grid-row:6;'>57-71</div>";
             echo "<div class='series-ref' style='grid-column:3;grid-row:7;'>89-103</div>";
 
+            
             foreach ($elements as $e) {
                 if ($e[4] === 'lanthanide') renderCell($e, 3 + ($e[0] - 57), 9);
                 if ($e[4] === 'actinide')   renderCell($e, 3 + ($e[0] - 89), 10);
@@ -106,12 +130,12 @@ function renderCell($e, $col, $row) {
     </div>
 
     <div class="legend d-flex flex-wrap gap-3 justify-content-center mt-4">
-        <?php
-            foreach ($categoryLabels as $key => $label) {
-            echo "<div><span class='swatch {$key}'></span>{$label}</div>";
-            }
-        ?>
+        <?php foreach ($categoryLabels as $key => $label): ?>
+            <div><span class="swatch <?= $key ?>"></span><?= $label ?></div>
+        <?php endforeach; ?>
     </div>
 </div>
+
 </body>
+
 </html>
