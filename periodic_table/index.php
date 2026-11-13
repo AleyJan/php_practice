@@ -7,7 +7,8 @@ $dbname = 'periodic_table';
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 if ($conn->connect_error) {
-    die('Database connection failed: ' .connect_error);
+    die('Database connection failed: ' . $conn->connect_error);
+
 }
 
 $elements = [];
@@ -36,7 +37,7 @@ $categoryLabels = [
 ];
 
 function renderCell($e, $col, $row) {
-    [$num, $sym, $name, $mass, $cat,$period,$grp] = $e;
+    [$num, $sym, $name, $mass, $cat, $grp, $period] = $e;
     $title = htmlspecialchars("$num - $name ($mass)");
     $safename = htmlspecialchars($name, ENT_QUOTES);
     echo "<div class='element {$cat}' style='grid-column:{$col};grid-row:{$row};' title='{$title}'
@@ -47,6 +48,8 @@ function renderCell($e, $col, $row) {
        . "<span class='name'>" . htmlspecialchars($name) . "</span>"
        . "</div>";
 }
+
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -135,6 +138,64 @@ function renderCell($e, $col, $row) {
         <?php endforeach; ?>
     </div>
 </div>
+
+<div class="modal fade" id="elementModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="m-name">Element Name</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            <span>Protons:</span> <strong id="m-protons"></strong>
+          </li>
+          <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            <span>Electrons:</span> <strong id="m-electrons"></strong>
+          </li>
+          <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            <span>Neutrons:</span> <strong id="m-neutrons"></strong>
+          </li>
+          <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            <span>Mass Number:</span> <strong id="m-mass"></strong>
+          </li>
+          <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            <span>Number of Shells:</span> <strong id="m-shells"></strong>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+
+<script>
+    function openModal(el){
+    const {num,mass,period,name}=el.dataset;
+    const electrons = Number(num);
+    const protons = Number(num);
+    const neutrons = Number(mass - protons);
+    const shells = period;
+        console.log({ name, protons, electrons, mass, neutrons, shells });
+
+        document.getElementById('m-name').textContent = name;
+        document.getElementById('m-mass').textContent = mass;
+        document.getElementById('m-electrons').textContent = electrons;
+        document.getElementById('m-protons').textContent = protons;
+        document.getElementById('m-neutrons').textContent = neutrons;
+        document.getElementById('m-shells').textContent = shells;
+
+        const myModal = new bootstrap.Modal(document.getElementById('elementModal'));
+        myModal.show();
+
+
+}
+
+</script>
+
 
 </body>
 
